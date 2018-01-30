@@ -1,4 +1,4 @@
-const Prompt = require('input-prompt');
+const Prompt = require('input-promptify');
 
 // ES6
 (async () => {
