@@ -1,5 +1,5 @@
 {
-  "name": "prompter",
+  "name": "input-prompt",
   "version": "1.0.0",
   "description": "A simple Non blocking Node.js input prompting utility for accepting user input and passwords.",
   "main": "index.js",
@@ -9,6 +9,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kingerking/Prompter.git"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4"
   },
   "keywords": [
     "clie",
