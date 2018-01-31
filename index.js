@@ -1,5 +1,39 @@
 const _ = require('lodash');
+const chalk = require("chalk");
+const cliCursor = require('cli-cursor');
 const readline = require('readline');
+
+let promptOptions = {};
+/**
+ * Colors must be available to chalk
+ */
+const baseSelectionStyleOptions = {
+
+    /**
+     * Color for the selected fields.
+     */
+    selectedColor: { r: 155, g: 155, b: 155 },
+
+    /**
+     * Color for the non selected fields.
+     */
+    nonSelectedColor: { r: 255, g: 255, b: 255 },
+    
+};
+
+const baseOptions = {
+    /**
+     * If this is not null it means the user is wanting to create a character filtered field, therefore the character(s) you place in this variable will display in place of a letter when typing.
+     */
+    replaceCharacter: null,
+    // basic selection settings.
+    styling: baseSelectionStyleOptions,
+    /**
+     * If this is not null and an array the system will scheme out a selection prompt.
+     * Put an array of available selection options in here that the user can select.
+     */
+    selectable: null,
+};
 
 let currentPrompt = null;
 let readInput = false;
@@ -15,43 +49,110 @@ process.stdin.setRawMode(true);
 // useful for replaceCharacters
 let textToRender = [], returnBuffer = [];
 
+// SELECTION CONTEXT VARIABLES
+let focused = 0;
+// if not null the system will create a selection instance.
+let selectionFields = null;
+
 function startLine ()
 {
     process.stdout.write(prefix);
 }
 
-function render() {
+/**
+ * Basic input prompt rendering.
+ */
+function renderInputPrompt() {
     process.stdout.write(prefix);
     process.stdout.write(textToRender.join(''));
+}
+
+/**
+ * Refresh what to return to user.
+ */
+function refreshSelectionReturnBuffer()
+{
+    // console.log('updating selected value: ', selectionFields[focused])
+    returnBuffer = [ {
+        index: focused,
+        value: selectionFields[focused].trim()
+    } ];
+}
+
+function renderSelectionPrompt()
+{
+    if(!selectionFields)
+    {
+        console.log(chalk.red("Tried rendering selection prompt without a buffer to render..."));
+        process.exit(1);
+    }
+    
+    readline.clearScreenDown();
+    selectionFields.forEach((field, index) => {
+        readline.cursorTo(process.stdout, 0);
+        const out = field + "\n";
+        
+        // const nonSelectedColor = promptOptions.styling.noneSelectedColor;
+        // const selectedColor = promptOptions.styling.selectedColor;
+
+        process.stdout.write(
+            focused == index ? 
+            // chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out) : 
+            chalk.blue(out) : 
+            chalk.yellow(out)
+            // chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out)
+        );
+    });
+    readline.moveCursor(process.stdout, 0, -(selectionFields.length));
 }
 
 process.stdin.on('keypress', (str, key) => {
     if(!readInput) return;
     let didBackspace = false;
-    if(key.ctrl && key.name == 'c')
-    {
-        process.exit(0);
-        return;
-    } else if(key.name == "return")
-    {
-        // this is for new line. dont remove
-        console.log();
-        if(!!currentPrompt)
-            currentPrompt(returnBuffer.join("").trim());
 
-        return;
-    }else if(key.name == "backspace")
+    // console.log(key.name);
+
+    switch(key.name)
     {
-        textToRender.pop();
+        // TODO: add abort prompt functionality.
+        case 'c': if(!key.ctrl) break;
+            return process.exit(0);
+        // user is done.
+        case 'return':
+            if(!currentPrompt)
+                return;
+            console.log();
+            // if in text mode return the buffer joined, else return the zero index witch is a selection object.
+            return currentPrompt(!selectionFields ? returnBuffer.join("").trim() : returnBuffer[0]);
+        case 'backspace':
+            textToRender.pop();
+            
+            returnBuffer[returnBuffer.length - 1] = null;
+            returnBuffer = _.without(returnBuffer, null);
+
+            readline.clearLine(process.stdout, 0);
+            readline.cursorTo(process.stdout, -1);    
+            return renderInputPrompt();
+        // up key
+        case 'up':
+            if(!!selectionFields && focused !== 0)
+            {
+                focused--;
+                refreshSelectionReturnBuffer();
+            }
+            break;
+        //down key
+        case 'down':
+            if(!!selectionFields && focused !== selectionFields.length - 1)
+            {
+                focused++;
+                refreshSelectionReturnBuffer();
+            }
+            break;
         
-        returnBuffer[returnBuffer.length - 1] = null;
-        returnBuffer = _.without(returnBuffer, null);
 
-        readline.clearLine(process.stdout, 0);
-        readline.cursorTo(process.stdout, -1);
-        render();
-        return;
     }
+    
     
     // textToRender = _.without(
     //     _.map(textToRender, element => element == " " ? null : element), null
@@ -65,42 +166,61 @@ process.stdin.on('keypress', (str, key) => {
     // {
     
     
-    readline.cursorTo(process.stdout, 0);
-    render();
-
+    // render a basic input form.
+    if(!selectionFields)
+    {
+        // keep this line outside of renderInputPrompt() since backspacing requires the render function and has a different process of readline.cursorTo()
+        readline.cursorTo(process.stdout, 0);
+        return renderInputPrompt();
+    }
+    
+    // render a selection form.
+    renderSelectionPrompt();
 
     // }
 });
 
 
-const baseOptions = {
-    replaceCharacter: null,
-};
-
 module.exports = (base = "", options = baseOptions) => {
 
     const promise = new Promise(resolve => {
         // if someone only wants to change one thing in options this allows users to do so.
-        options = _.merge(baseOptions, options);
+        // options = _.merge(options, baseOptions);
+        promptOptions = options;
         if(base) 
             prefix = base;
         else prefix = "";
-        startLine();
+        // reset the buffers
+        textToRender = [];
+        returnBuffer = [];
+        selectionFields = null;
+        focused = 0;
+
+        // check for selection option and if so init selection system.
+        if(!!options.selectable && options.selectable instanceof Array)
+        {
+            selectionFields = options.selectable;
+            cliCursor.hide();
+            // write the prefix
+            console.log(prefix);
+        }
+        // console.log("working with selection field object: ", selectionFields);
+    
         // configure prompt
         // blockOutput = !!options.inputCharacterOverride;
         inputCharacterOverride = !!options.replaceCharacter ? options.replaceCharacter : null;
         currentPrompt = data => {
             process.stdin.setRawMode(false);
             readInput = false;
+            cliCursor.show();// incase its hid.
             process.stdin.pause();
             resolve(data);
         };
         // reset buffer.
-        textToRender = [];
-        returnBuffer = [];
         process.stdin.setRawMode(true);
         readInput = true;
         process.stdin.resume();
+        (!options.selectable ? startLine : renderSelectionPrompt)();
     });
 
 
