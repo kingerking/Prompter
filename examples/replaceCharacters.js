@@ -6,3 +6,4 @@ const Prompt = require('input-promptify');
 })();
 //ES5
 Prompt("Whats your secret name? ", { replaceCharacter: "*" }).then(console.log);
+ 

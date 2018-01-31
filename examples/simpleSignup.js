@@ -15,4 +15,4 @@ Prompt("Email: ").then(email => {
             return console.log("invalid fields.");
         console.log(`Successful login as ${email} with password: ${password}`);
     });
-});
+}); 

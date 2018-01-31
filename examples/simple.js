@@ -5,4 +5,4 @@ const Prompt = require('input-promptify');
     console.log(testData);
 })();
 // ES5 promise's 
-Prompt("Whats your name? ").then(console.log);
+Prompt("Whats your name? ").then(console.log); 
