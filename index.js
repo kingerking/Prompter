@@ -49,6 +49,7 @@ let readInput = false;
 let blockOutput = false;
 let inputCharacterOverride = null;
 let prefix = "";
+let multiSelectionMode = false;
 
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
@@ -79,14 +80,35 @@ function renderInputPrompt() {
 
 /**
  * Refresh what to return to user.
+ * :NOTE: This will only be used for a non multi section prompt.
  */
-function refreshSelectedValues()
+function refreshReturnBuffer()
 {
     // console.log('updating selected value: ', selectionFields[focused])
-    selected = [ {
+    returnBuffer = [ {
         index: focused,
         value: selectionFields[focused].trim()
     } ];
+}
+
+/**
+ * Will return a chalk function based on selected index, etc..
+ * @param {*} selectedColor 
+ * @param {*} nonSelectedColor 
+ * @param {*} focusedColor 
+ * @param {*} index 
+ */
+function calculateFieldColor(selectedColor, nonSelectedColor, focusedColor, index, out)
+{
+    // focused and selected
+    // if(focused == index && multiSelectionMode && selected.indexOf(focused) !== -1)
+    //     return chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b);
+    // value is selected but no focused
+    if(selected.indexOf(index) !== -1) // this goes before focused so selected color gets priority over focused values
+        return chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out);
+    if(focused == index)
+        return chalk.rgb(focusedColor.r, focusedColor.g, focusedColor.b)(out);
+    return chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out);
 }
 
 function renderSelectionPrompt()
@@ -97,21 +119,17 @@ function renderSelectionPrompt()
         process.exit(1);
     }
     
+
     readline.clearScreenDown();
     selectionFields.forEach((field, index) => {
-        readline.cursorTo(process.stdout, 0);
-        const out = field + "\n";
-        // TODO: implement styling
-        const nonSelectedColor = promptOptions.styling.nonSelectedColor;
-        const selectedColor = promptOptions.styling.selectedColor;
-
+        readline.cursorTo(process.stdout, -1);
         process.stdout.write(
-            focused == index ? 
-            // chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out) : 
-            chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out) : 
-            chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out)
-            // chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out)
-        );
+            calculateFieldColor(
+                promptOptions.styling.selectedColor, 
+                promptOptions.styling.nonSelectedColor, 
+                promptOptions.styling.focusedColor, index, field
+            ) + '\n'
+        ); 
     });
     readline.moveCursor(process.stdout, 0, -(selectionFields.length));
 }
@@ -131,9 +149,22 @@ process.stdin.on('keypress', (str, key) => {
         case 'return':
             if(!currentPrompt)
                 return;
-            console.log();
+            // console.log("selection output", selected.map(val => selectionFields[val]))
             // if in text mode return the buffer joined, else return the zero index witch is a selection object.
-            return currentPrompt(!selectionFields ? returnBuffer.join("").trim() : selected);
+            const selectionReturn = () => {
+                // multi section return
+                return multiSelectionMode ? selected.map(val => {
+                    return {
+                        index: val,
+                        value: selectionFields[val]
+                    };
+                    // if single section mode.
+                }) : !!selectionFields ? {
+                    index: focused,
+                    value: selectionFields[focused]
+                } : []
+            };
+            return currentPrompt(!selectionFields ? returnBuffer.join("").trim() : selectionReturn());
         case 'backspace':
             // selection fields dont require this functionality.
             if(!!selectionFields) break;
@@ -153,7 +184,7 @@ process.stdin.on('keypress', (str, key) => {
                     focused--;
                 else // hope to bottom if top of selection
                     focused = selectionFields.length -1;
-                refreshSelectedValues();
+                refreshReturnBuffer();
             }
             break;
         //down key
@@ -164,13 +195,26 @@ process.stdin.on('keypress', (str, key) => {
                     focused++;
                 else
                     focused = 0;
-                refreshSelectedValues();
+                refreshReturnBuffer();
             }
             break;
         case 'space':
+            if(!multiSelectionMode) break;
             // set what field to select.
             const toSelect = focused;
-
+            const targetIndex = selected.indexOf(toSelect);
+            // could not found index.
+            if(targetIndex == -1)
+            {
+                // select a value.
+                // console.log(`add ${selectionFields[focused]} to selected list.`);
+                selected.push(focused); 
+            }
+            else {
+                // deselect a value.
+                // console.log(`remove ${selectionFields[focused]} from selected list.`);
+                selected = _.without(selected, focused);
+            }
             break;
         
 
@@ -223,6 +267,7 @@ module.exports = (base = "", options = baseOptions) => {
         selected = [];
         selectionFields = null;
         focused = 0;
+        multiSelectionMode = !options.multiSelection ? false : options.multiSelection;
 
         // check for selection option and if so init selection system.
         if(!!options.selectable && options.selectable instanceof Array)

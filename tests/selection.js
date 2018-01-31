@@ -1,4 +1,5 @@
 const Prompt = require('../index');
+const chalk = require('chalk');
 
 (async () => {
     const name = await Prompt("name; ");
@@ -21,14 +22,14 @@ const Prompt = require('../index');
     console.log();
     console.log();
     
-    const password = await Prompt("Please type a dummy password: ", { replaceCharacter: "*" });
+    const password = await Prompt(chalk.underline("Please type a dummy password: "), { replaceCharacter: "*" });
 
     console.log();
     console.log();
     console.log('form summery:');
     console.log('name:', name);
     console.log('password:', password);
-    console.log('name selection:', nameSelection.value);
-    console.log('fav person selection:', favPerson.value);
+    console.log('name selection:', nameSelection);
+    console.log('fav person selection:', favPerson);
 
 })();
