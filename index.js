@@ -12,13 +12,16 @@ const baseSelectionStyleOptions = {
     /**
      * Color for the selected fields.
      */
-    selectedColor: { r: 155, g: 155, b: 155 },
+    selectedColor: { r: 129, g: 168, b: 92 },
 
     /**
      * Color for the non selected fields.
      */
     nonSelectedColor: { r: 255, g: 255, b: 255 },
-    
+    /**
+     * This feature is only available in a multi selectable selection prompt.
+     */
+    focusedColor: { r: 155, g: 155, b: 155 }
 };
 
 const baseOptions = {
@@ -33,6 +36,10 @@ const baseOptions = {
      * Put an array of available selection options in here that the user can select.
      */
     selectable: null,
+    /**
+     * Weather or not you can select more the one field.
+     */
+    multiSelection: false,
 };
 
 let currentPrompt = null;
@@ -50,7 +57,10 @@ process.stdin.setRawMode(true);
 let textToRender = [], returnBuffer = [];
 
 // SELECTION CONTEXT VARIABLES
+// what selection the cursor is on.
 let focused = 0;
+// array of int's pointing to index's of selected selection items
+let selected = [];
 // if not null the system will create a selection instance.
 let selectionFields = null;
 
@@ -70,10 +80,10 @@ function renderInputPrompt() {
 /**
  * Refresh what to return to user.
  */
-function refreshSelectionReturnBuffer()
+function refreshSelectedValues()
 {
     // console.log('updating selected value: ', selectionFields[focused])
-    returnBuffer = [ {
+    selected = [ {
         index: focused,
         value: selectionFields[focused].trim()
     } ];
@@ -91,15 +101,15 @@ function renderSelectionPrompt()
     selectionFields.forEach((field, index) => {
         readline.cursorTo(process.stdout, 0);
         const out = field + "\n";
-        
-        // const nonSelectedColor = promptOptions.styling.noneSelectedColor;
-        // const selectedColor = promptOptions.styling.selectedColor;
+        // TODO: implement styling
+        const nonSelectedColor = promptOptions.styling.nonSelectedColor;
+        const selectedColor = promptOptions.styling.selectedColor;
 
         process.stdout.write(
             focused == index ? 
             // chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out) : 
-            chalk.blue(out) : 
-            chalk.yellow(out)
+            chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out) : 
+            chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out)
             // chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out)
         );
     });
@@ -123,8 +133,10 @@ process.stdin.on('keypress', (str, key) => {
                 return;
             console.log();
             // if in text mode return the buffer joined, else return the zero index witch is a selection object.
-            return currentPrompt(!selectionFields ? returnBuffer.join("").trim() : returnBuffer[0]);
+            return currentPrompt(!selectionFields ? returnBuffer.join("").trim() : selected);
         case 'backspace':
+            // selection fields dont require this functionality.
+            if(!!selectionFields) break;
             textToRender.pop();
             
             returnBuffer[returnBuffer.length - 1] = null;
@@ -135,19 +147,30 @@ process.stdin.on('keypress', (str, key) => {
             return renderInputPrompt();
         // up key
         case 'up':
-            if(!!selectionFields && focused !== 0)
+            if(!!selectionFields)
             {
-                focused--;
-                refreshSelectionReturnBuffer();
+                if(focused !== 0) 
+                    focused--;
+                else // hope to bottom if top of selection
+                    focused = selectionFields.length -1;
+                refreshSelectedValues();
             }
             break;
         //down key
         case 'down':
-            if(!!selectionFields && focused !== selectionFields.length - 1)
+            if(!!selectionFields)
             {
-                focused++;
-                refreshSelectionReturnBuffer();
+                if(focused !== selectionFields.length - 1)
+                    focused++;
+                else
+                    focused = 0;
+                refreshSelectedValues();
             }
+            break;
+        case 'space':
+            // set what field to select.
+            const toSelect = focused;
+
             break;
         
 
@@ -185,14 +208,19 @@ module.exports = (base = "", options = baseOptions) => {
 
     const promise = new Promise(resolve => {
         // if someone only wants to change one thing in options this allows users to do so.
-        // options = _.merge(options, baseOptions);
+        // apply default styling if not overwritten
+        if(!options.styling)
+            options.styling = baseSelectionStyleOptions;
+        // set prompt options
         promptOptions = options;
+
         if(base) 
             prefix = base;
         else prefix = "";
-        // reset the buffers
+        // reset all buffers.
         textToRender = [];
         returnBuffer = [];
+        selected = [];
         selectionFields = null;
         focused = 0;
 

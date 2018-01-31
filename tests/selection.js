@@ -6,10 +6,7 @@ const Prompt = require('../index');
     console.log();
     console.log();
     const nameSelection = await Prompt("Please pick your favorite name", {
-        // styling: {
-        //     selectedColor: "yellow",
-        //     nonSelectedColor: "blue"
-        // },
+        multiSelection: true,
         selectable: [
             "Bob", "Gill", "Kyle", "garry"
         ],
