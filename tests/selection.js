@@ -11,15 +11,20 @@ const styling = {
     const name = await Prompt("full name: ");
     console.log();
     const gender = await Prompt("Whats your gender?", { styling, selectable: ["Male", "Female"] });
-    console.log();
+    console.log("\n");
     const enable = await Prompt("Pick what feature you want to enable (space to select, enter to confirm selection)", {
         styling,
         multiSelection: true,
         selectable: [ "Api", "Frontend", "database", "basic" ]
     });
-    console.log();
+    console.log("\n");
     const password = await Prompt("Set your password: ", { replaceCharacter: "*" });
 
     console.log("form summery");
+    console.log("name: ", name);
+    console.log("gender: ", gender.value);
+    console.log("enabled features: ", enable.map(v => v.value));
+    console.log('password: ', password);
+
 
 })();
