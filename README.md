@@ -8,6 +8,7 @@ written to be async in nature.
  - Basic Selections
  - Multi Selectable Selections
  - Enhanced styling
+ - Advanced Prompt grouping and management
 
 ## planned features:
  - Javascript Regular expression string filtering
