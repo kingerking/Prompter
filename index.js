@@ -100,14 +100,12 @@ function refreshReturnBuffer()
  */
 function calculateFieldColor(selectedColor, nonSelectedColor, focusedColor, index, out)
 {
-    // focused and selected
-    // if(focused == index && multiSelectionMode && selected.indexOf(focused) !== -1)
-    //     return chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b);
-    // value is selected but no focused
+    if(selected.indexOf(index) !== -1 && focused == index)
+    return chalk.bold.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out);
     if(selected.indexOf(index) !== -1) // this goes before focused so selected color gets priority over focused values
         return chalk.rgb(selectedColor.r, selectedColor.g, selectedColor.b)(out);
     if(focused == index)
-        return chalk.rgb(focusedColor.r, focusedColor.g, focusedColor.b)(out);
+        return chalk.bold.rgb(focusedColor.r, focusedColor.g, focusedColor.b)(out);
     return chalk.rgb(nonSelectedColor.r, nonSelectedColor.g, nonSelectedColor.b)(out);
 }
 
@@ -120,7 +118,8 @@ function renderSelectionPrompt()
     }
     
 
-    readline.clearScreenDown();
+    readline.clearScreenDown(process.stdout);
+    // process.stdout.write('\n');
     selectionFields.forEach((field, index) => {
         readline.cursorTo(process.stdout, -1);
         process.stdout.write(
@@ -131,6 +130,7 @@ function renderSelectionPrompt()
             ) + '\n'
         ); 
     });
+    // process.stdout.write('\n');
     readline.moveCursor(process.stdout, 0, -(selectionFields.length));
 }
 
@@ -205,16 +205,14 @@ process.stdin.on('keypress', (str, key) => {
             const targetIndex = selected.indexOf(toSelect);
             // could not found index.
             if(targetIndex == -1)
-            {
                 // select a value.
                 // console.log(`add ${selectionFields[focused]} to selected list.`);
                 selected.push(focused); 
-            }
-            else {
+            
+            else 
                 // deselect a value.
                 // console.log(`remove ${selectionFields[focused]} from selected list.`);
                 selected = _.without(selected, focused);
-            }
             break;
         
 
@@ -251,6 +249,7 @@ process.stdin.on('keypress', (str, key) => {
 module.exports = (base = "", options = baseOptions) => {
 
     const promise = new Promise(resolve => {
+        // add some space between this prompt and last one(if last one exists)
         // if someone only wants to change one thing in options this allows users to do so.
         // apply default styling if not overwritten
         if(!options.styling)
@@ -283,10 +282,22 @@ module.exports = (base = "", options = baseOptions) => {
         // blockOutput = !!options.inputCharacterOverride;
         inputCharacterOverride = !!options.replaceCharacter ? options.replaceCharacter : null;
         currentPrompt = data => {
+            if(multiSelectionMode)
+            {
+                /**
+                 * Add space between the top most selected value and bottom of list. this is because node will write ontop of any non selected values.
+                 * This is a quick little feature that makes output look nicer and less ganky.
+                 */
+                let curr = 0;
+                const topValue = _.without(selected.map(value => value >= curr ? value : null), null);
+                topValue.forEach(() => console.log());
+                
+            }
             process.stdin.setRawMode(false);
             readInput = false;
             cliCursor.show();// incase its hid.
             process.stdin.pause();
+            console.log();
             resolve(data);
         };
         // reset buffer.
