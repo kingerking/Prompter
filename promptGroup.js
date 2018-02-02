@@ -39,7 +39,7 @@ module.exports = function(userConfig) {
 
         async function exe() {
             for(const schema of promptExecutionQueue) 
-                returnObjects[schema.name] = await Prompt(schema.base, _.merge(defaultOptions, schema.options));
+                returnObjects[schema.name] = await Prompt(schema.base, _.merge(schema.options, defaultOptions));
             // clear space
             // _.forEach(returnObjects, () => console.log());
             return returnObjects;
