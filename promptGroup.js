@@ -28,8 +28,10 @@ module.exports = function(userConfig) {
              * Apply these options to every prompt
              */
             apply: defaultOptionOverride => defaultOptions = _.merge(defaultOptions, defaultOptionOverride),
-            confirm: () => doConfirm = true,
-            
+            // /**
+            //  * 
+            //  */
+            // confirm: () => doConfirm = true,
         };
 
         // configure PromptGroup.
@@ -38,6 +40,8 @@ module.exports = function(userConfig) {
         async function exe() {
             for(const schema of promptExecutionQueue) 
                 returnObjects[schema.name] = await Prompt(schema.base, _.merge(defaultOptions, schema.options));
+            // clear space
+            _.forEach(returnObjects, () => console.log());
             return returnObjects;
         };
         exe().then(() => resolve(returnObjects));
