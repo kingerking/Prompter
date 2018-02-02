@@ -300,7 +300,10 @@ function Prompt(base, options = baseOptions) {
                 const topValue = _.without(selected.map(value => value >= curr ? value : null), null);
                 topValue.forEach(() => console.log());
                 
-            }
+            } else if(!!selectionFields) // if single selection mode then give space based on what option the user selected...
+                for(let i = focused - 1; i < selectionFields.length; i++)
+                    console.log();
+            
             process.stdin.setRawMode(false);
             readInput = false;
             cliCursor.show();// incase its hid.
