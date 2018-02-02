@@ -1,6 +1,6 @@
 {
   "name": "input-promptify",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A simple Non blocking Node.js input prompting utility for accepting user input and passwords.",
   "main": "index.js",
   "scripts": {

@@ -14,7 +14,8 @@ module.exports = function(userConfig) {
         let returnObjects = {};
 
         let defaultOptions = {};
-
+        // weather or not to confirm the data before returning. offer option to reset.
+        let doConfirm = false;
         const promptExecutionQueue = [];
 
         // will contain all the settings functions before and during prompt execution.
@@ -26,24 +27,13 @@ module.exports = function(userConfig) {
             /**
              * Apply these options to every prompt
              */
-            apply: defaultOptionOverride => defaultOptions = _.merge(defaultOptions, defaultOptionOverride)
+            apply: defaultOptionOverride => defaultOptions = _.merge(defaultOptions, defaultOptionOverride),
+            confirm: () => doConfirm = true,
             
         };
 
         // configure PromptGroup.
         userConfig(handlerObject);
-        
-        console.log("exe queue length: ", promptExecutionQueue.length);
-
-        function test()
-        {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    console.log("resolving timeout")
-                    resolve("testing 123!!1")
-                }, 1000);
-            });
-        }
 
         async function exe() {
             for(const schema of promptExecutionQueue) 
