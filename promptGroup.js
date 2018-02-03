@@ -31,7 +31,7 @@ module.exports = function(userConfig) {
              * Apply these options to every prompt
              */
             apply: defaultOptionOverride => defaultOptions = _.merge(defaultOptions, defaultOptionOverride),
-                
+            
             
             // /**
             //  * 

@@ -11,6 +11,7 @@
     "url": "git+https://github.com/kingerking/input-promptify.git"
   },
   "dependencies": {
+    "archy": "^1.0.0",
     "chalk": "^2.3.0",
     "cli-cursor": "^2.1.0",
     "lodash": "^4.17.4",
