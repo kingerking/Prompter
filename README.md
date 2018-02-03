@@ -1,18 +1,21 @@
 # Input Promptify
 A collections of command-line prompt utilities,
-written to be async in nature.
+written to be async in nature. medium getting started tutorial [here](https://medium.com/@kkingerkyle/everything-you-need-to-know-about-node-js-prompts-57301272e64b)
 
 ## features: 
- - Non blocking Basic prompting
- - Character replacing (much like a password field in nature)
- - Basic Selections
- - Multi Selectable Selections
- - Enhanced styling
- - Advanced Prompt grouping and management
+ - Non blocking prompting model.
+ - Character replacing (much like a password field in nature).
+ - Basic Selections.
+ - Multi Selectable Selections.
+ - Enhanced styling.
+ - Basic Prompt Grouping.
+ - Basic keyboard event system.
 
 ## planned features:
- - Javascript Regular expression string filtering
- - Ability to have multiple prompts open at a time in a column based style
+ - Advanced Prompt Groups.
+ - Javascript Regular expression string filtering.
+ - More advanced event system.
+ - Prompt Group event system integration.
  - More features to come, if you want to request a feature please open an issue.
 
 ## Installation 
@@ -136,3 +139,4 @@ Prompt("Select the programming languages you know(space to selection, enter to c
     ]
 }).then(console.log);
 ```
+### Prompt Groups
