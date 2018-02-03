@@ -47,7 +47,7 @@ const baseOptions = {
     /**
      * Lets external function to be called upon a keyboard event.
      */
-    eventHandle: null,
+    keyboardEvent: key => {},
 };
 
 let currentPrompt = null;
@@ -147,7 +147,8 @@ process.stdin.on('keypress', (str, key) => {
     let didBackspace = false;
 
     // console.log(key.name);
-
+    if(!!promptOptions.keyboardEvent)
+        promptOptions.keyboardEvent(key);
     switch(key.name)
     {
         // TODO: add abort prompt functionality.

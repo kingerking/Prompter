@@ -1,7 +1,7 @@
 {
   "name": "input-promptify",
   "version": "1.1.0",
-  "description": "A simple Non blocking Node.js input prompting utility for accepting user input and passwords.",
+  "description": "A simple Non blocking Node.js input prompting utility for accepting user input with a Basic text input and selection(list) based format's.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,7 +22,10 @@
     "character-hider",
     "utility",
     "selection-prompt",
-    "selection"
+    "selection",
+    "javascript",
+    "ES6",
+    "PromptGrouping"
   ],
   "author": "Kyle King",
   "license": "GPL-3.0",
