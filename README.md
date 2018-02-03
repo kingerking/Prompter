@@ -8,7 +8,7 @@ written to be async in nature. medium getting started tutorial [here](https://me
  - Basic Selections.
  - Multi Selectable Selections.
  - Enhanced styling.
- - Basic Prompt Grouping.
+ - Prompt Grouping.
  - Basic keyboard event system.
 
 ## planned features:
@@ -140,3 +140,75 @@ Prompt("Select the programming languages you know(space to selection, enter to c
 }).then(console.log);
 ```
 ### Prompt Groups
+Prompt Groups are a useful feature, they have many planned features and are a way of unifying prompt options and large group's of prompts. Here is a basic PromptGroup that contains one simple Prompt and a single selection Prompt.
+```
+(callback => Prompt(group => {
+    group.Prompt("email", chalk.green("Email "));
+    group.Prompt("lang", chalk.green("Favorite Language"), {
+        selectable: ["English", "French", "Spanish"]
+    });
+
+}).then(callback))(returnedData => {
+    console.log("== Form summery ==");
+    console.log("users email: ", returnedData.email);
+    console.log("users favorite language: ", returnedData.lang.value);
+});
+```
+This will invoke each defined Prompt one-by-one in order of definition. PromptGroups also offer a additional feature that can be useful in larger group's of Prompts, You can define default Prompt Options, for an example we will rewrite the previous snippet except we will be adding a new multi selectable selection and apply default styling to the group.
+```
+(callback => Prompt(group => {
+    
+    group.apply({
+        styling: {
+            // a nice yellow / orange color.
+            focusedColor: { r: 220, g: 165, b: 0 }
+        }
+    });
+    group.Prompt("email", chalk.green("Email "));
+
+    group.Prompt("lang", chalk.green("Favorite Language"), {
+        selectable: ["English", "French", "Spanish"]
+    });
+    
+    group.Prompt("gender", chalk.green("What are you? "), {
+        selectable: ["Male", "Female", "Apache attack helicopter"]
+    });
+
+}).then(callback))(returnedData => {
+    console.log("== Form summery ==");
+    console.log("users email: ", returnedData.email);
+    console.log("users favorite language: ", returnedData.lang.value);
+    console.log("You are a: ", returnedData.gender.value);
+});
+```
+
+
+### Important Note about the use of PromptGroups
+PromptGroups cannot refer to the values of previous Prompts within the same group by regular convention, due to this limitation, I have added String templating to use the current return model state as a template model. Here is a example that is written "without" PromptGrouping, we will recreate this with PromptGroup's.
+```
+(async () => {
+    const name = await Prompt(chalk.green("Name "));
+    const gender = await Prompt(chalk.green(`can you pick your gender ${name}?`), {
+        selectable: ['Male', 'Female']
+    });
+
+    console.log('Finished!');
+})();
+```
+This will work fine(this doesnt use PromptGroup's), in order to get the same result with a PromptGroup you simple use a string template, to get the value of previous prompt with the name of "email" you would use: **{email}** instead of ${email}. To further show this in action, we will do the same as the previous snippet like this:
+```
+const form = callback => Prompt(form => {
+
+    form.Prompt('name', chalk.green("Name "));
+    
+    form.Prompt('gender', chalk.green(`can you pick your gender {name}?`), {
+        selectable: ['Male', 'Female']
+    });
+
+}).then(callback);
+
+form(data => {
+    console.log("Finished!");
+});
+
+```

@@ -18,16 +18,21 @@ module.exports = function(userConfig) {
         let doConfirm = false;
         const promptExecutionQueue = [];
 
+        // queue for current values.
+        // since all code is ran then the prompts are ran we will have to 
+        const nameAtQueue = {};
         // will contain all the settings functions before and during prompt execution.
         const handlerObject = {
             // not a true prompt. this is a base object that stores Prompt options in a execution queue.
             // This can be considered a Prompt-Like.
             // This function will do nothing unless it is included in the return Array of a PromptGroup configuration function.
-            Prompt: (name, base, options) => { promptExecutionQueue.push({name, base, options}) },
+            Prompt: (name, base, options) => promptExecutionQueue.push({name, base, options}),
             /**
              * Apply these options to every prompt
              */
             apply: defaultOptionOverride => defaultOptions = _.merge(defaultOptions, defaultOptionOverride),
+                
+            
             // /**
             //  * 
             //  */
@@ -37,9 +42,21 @@ module.exports = function(userConfig) {
         // configure PromptGroup.
         userConfig(handlerObject);
 
+        function filterThroughReturnModel(str)
+        {
+            // bind string with its model so we can use previous values from PromptGroup.
+            return require('string-template')(str, _.forOwn(returnObjects, (ro, key) => {
+                return { [key]: ro instanceof String ? ro : ro.value }
+            }));
+        }
+
         async function exe() {
             for(const schema of promptExecutionQueue) 
-                returnObjects[schema.name] = await Prompt(schema.base, _.merge(schema.options, defaultOptions));
+            {
+                const value = await Prompt(filterThroughReturnModel(schema.base), _.merge(schema.options, defaultOptions));
+                
+                returnObjects[schema.name] = value;
+            }
             // clear space
             // _.forEach(returnObjects, () => console.log());
             return returnObjects;

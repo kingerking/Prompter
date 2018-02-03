@@ -75,7 +75,7 @@ let selectionFields = null;
 
 function startLine ()
 {
-    process.stdout.write(chalk.rgb(promptOptions.styling.headerColor.r, promptOptions.styling.headerColor.g, promptOptions.styling.headerColor.b)(prefix));
+    process.stdout.write(prefix);
 }
 
 /**
@@ -132,9 +132,10 @@ function renderSelectionPrompt()
         readline.cursorTo(process.stdout, -1);
         process.stdout.write(
             calculateFieldColor(
-                promptOptions.styling.selectedColor, 
-                promptOptions.styling.nonSelectedColor, 
-                promptOptions.styling.focusedColor, index, field
+                !!promptOptions.styling.selectedColor ? promptOptions.styling.selectedColor : baseSelectionStyleOptions.selectedColor, 
+                !!promptOptions.styling.nonSelectedColor ? promptOptions.styling.nonSelectedColor : baseSelectionStyleOptions.nonSelectedColor, 
+                !!promptOptions.styling.focusedColor ? promptOptions.styling.focusedColor : baseSelectionStyleOptions.focusedColor, 
+                index, field
             ) + '\n'
         ); 
     });
