@@ -143,12 +143,13 @@ function renderSelectionPrompt()
     readline.moveCursor(process.stdout, 0, -(selectionFields.length));
 }
 
-process.stdin.on('keypress', (str, key) => {
+process.stdin.on('keypress', (str, key, isRenderCall) => {
+    // console.log("got render call: ", str, key, isRenderCall);
     if(!readInput) return;
     let didBackspace = false;
     
     // console.log(key.name);
-    if(!!promptOptions.keyboardEvent)
+    if(!!promptOptions.keyboardEvent && !isRenderCall)
         promptOptions.keyboardEvent(str, key);
 
     switch(key.name)
@@ -312,11 +313,25 @@ function Prompt(base, options = baseOptions) {
             console.log();
             resolve(data);
         };
+        if(!!promptOptions.abortHandler)
+        {
+            promptOptions.abortHandler.once('abort', () => {
+                // end with current value.
+                currentPrompt(returnBuffer.join("").trim());
+            });
+        }
         // reset buffer.
         process.stdin.setRawMode(true);
         readInput = true;
         process.stdin.resume();
         (!options.selectable ? startLine : renderSelectionPrompt)();
+        if(!!promptOptions.startWith)
+        {
+            const deconstructed = promptOptions.startWith.split('');
+            // returnBuffer = deconstructed;
+            // textToRender = deconstructed;
+            deconstructed.forEach(element => process.stdin.emit('keypress', element, { ctrl: false, name: element }, true));
+        }
     });
     return promise;
 }
