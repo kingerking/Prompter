@@ -1,6 +1,6 @@
 {
   "name": "input-promptify",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A simple Non blocking Node.js input prompting utility for accepting user input with a Basic text input and selection(list) based format's.",
   "main": "index.js",
   "scripts": {

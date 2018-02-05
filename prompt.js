@@ -47,7 +47,7 @@ const baseOptions = {
     /**
      * Lets external function to be called upon a keyboard event.
      */
-    keyboardEvent: key => {},
+    events: new require('events').EventEmitter(),
 };
 
 let currentPrompt = null;
@@ -146,10 +146,11 @@ function renderSelectionPrompt()
 process.stdin.on('keypress', (str, key) => {
     if(!readInput) return;
     let didBackspace = false;
-
+    
     // console.log(key.name);
     if(!!promptOptions.keyboardEvent)
-        promptOptions.keyboardEvent(key);
+        promptOptions.keyboardEvent(str, key);
+
     switch(key.name)
     {
         // TODO: add abort prompt functionality.
@@ -228,8 +229,6 @@ process.stdin.on('keypress', (str, key) => {
 
     }
     
-    if(!!promptOptions.eventHandle)
-        promptOptions.eventHandle(str, key);
     
     // textToRender = _.without(
     //     _.map(textToRender, element => element == " " ? null : element), null
