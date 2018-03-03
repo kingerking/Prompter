@@ -10,11 +10,9 @@ written to be async in nature. medium getting started tutorial [here](https://me
  - Enhanced styling.
  - Prompt Grouping.
  - Basic keyboard event system.
- - Advanced **PDPF**(Post Definition Prompt factory) functions. for complex usecases.
 
 ## planned features:
  - Advanced Prompt Groups.
- - Add more **PDPF** functions.
  - Javascript Regular expression string filtering.
  - More advanced event system.
  - Prompt Group event system integration.
