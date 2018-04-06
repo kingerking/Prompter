@@ -3,7 +3,7 @@ A collections of command-line prompt utilities,
 written to be async in nature. medium getting started tutorial [here](https://medium.com/@kkingerkyle/everything-you-need-to-know-about-node-js-prompts-57301272e64b)
 
 ## features: 
- - Non blocking prompting model.
+ - Async prompting model.
  - Character replacing (much like a password field in nature).
  - Basic Selections.
  - Multi Selectable Selections.
